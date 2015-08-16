@@ -1,0 +1,62 @@
+# Maintainer: Dmitry Fillo <fillo at fillo dot me>
+# Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
+
+_pkgbase=hostapd
+pkgname=hostapd-noscan
+pkgver=2.3
+pkgrel=1
+pkgdesc="IEEE 802.11 AP, IEEE 802.1X/WPA/WPA2/EAP/RADIUS Authenticator with noscan patch"
+arch=('i686' 'x86_64')
+url="http://w1.fi/hostapd/"
+license=('custom')
+depends=('openssl' 'libnl')
+conflicts=('hostapd')
+provides=('hostapd=2.3')
+install=hostapd.install
+options=(emptydirs)
+changelog=$pkgname.changelog
+source=(http://w1.fi/releases/${_pkgbase}-$pkgver.tar.gz
+	config
+	hostapd.service
+	hostapd-$pkgver-noscan.patch)
+md5sums=('40b89c61036add0c2dd1fc10767d3b5f'
+         '72e8ecf8fadf8b06d87876ea8c3dfd07'
+         'a0a16879eed5e4e41ae6b225a4809955'
+         'f2f13cf359735ba0ab7bad7690101b60')
+
+build() {
+  cd ${_pkgbase}-$pkgver
+  patch -p1 <../hostapd-$pkgver-noscan.patch
+  cd hostapd
+  cp ../../config .config
+  sed -i 's#/etc/hostapd#/etc/hostapd/hostapd#' hostapd.conf
+  export CFLAGS="$CFLAGS $(pkg-config --cflags libnl-3.0)"
+  make
+}
+
+package() {
+  # Systemd unit
+  install -Dm644 hostapd.service "$pkgdir/usr/lib/systemd/system/hostapd.service"
+
+  cd ${_pkgbase}-$pkgver
+
+  # License
+  install -Dm644 COPYING "$pkgdir/usr/share/licenses/${pkgname}/COPYING"
+
+  cd hostapd
+
+  # Binaries
+  install -d "$pkgdir/usr/bin"
+  install -t "$pkgdir/usr/bin" hostapd hostapd_cli
+
+  # Configuration
+  install -d "$pkgdir/etc/hostapd"
+  install -d "$pkgdir/usr/share/doc/hostapd"
+  install -m644 -t "$pkgdir/usr/share/doc/hostapd" \
+    hostapd.{accept,conf,deny,eap_user,radius_clients,sim_db,vlan,wpa_psk} \
+    wired.conf hlr_auc_gw.milenage_db
+
+  # Man pages
+  install -Dm644 hostapd.8 "$pkgdir/usr/share/man/man8/hostapd.8"
+  install -Dm644 hostapd_cli.1 "$pkgdir/usr/share/man/man1/hostapd_cli.1"
+}

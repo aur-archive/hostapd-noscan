@@ -1,0 +1,17 @@
+2015-02-19 Dmitry Fillo <fillo@fillo.me>
+
+	* 2.3-1 :
+	New version.
+
+2014-10-09 Dmitry Fillo <fillo@fillo.me>
+
+	* 2.2-3 :
+	Added provides var to the PKGBUILD.
+
+	* hostapd.install :
+	Added comment about noscan patch.
+
+2014-09-28 Dmitry Fillo <fillo@fillo.me>
+
+	* 2.2-2 :
+	Added ChangeLog.
